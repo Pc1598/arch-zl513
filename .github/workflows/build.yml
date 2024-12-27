@@ -1,0 +1,81 @@
+name: Build Linux Kernel Package
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 5'  # Run every Friday at midnight
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Still using Ubuntu runner to handle Docker setup
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Create more disk space
+      run: |
+        # Clean up unused software and language runtimes to free up space
+        sudo rm -rf \
+          "$AGENT_TOOLSDIRECTORY" \
+          /opt/google/chrome \
+          /opt/microsoft/msedge \
+          /opt/microsoft/powershell \
+          /opt/pipx \
+          /usr/lib/mono \
+          /usr/local/julia* \
+          /usr/local/lib/android \
+          /usr/local/lib/node_modules \
+          /usr/local/share/chromium \
+          /usr/local/share/powershell \
+          /usr/share/dotnet \
+          /usr/share/swift
+        df -h /
+        # Optionally, print disk space before/after cleanup for debugging
+    
+    - name: Set up Docker with Arch Linux
+      run: |
+        # Pull the latest Arch Linux image
+        docker pull archlinux:latest
+
+    - name: Build Kernel inside Arch Linux container
+      run: |
+        # Run the build in a Docker container
+        docker run --rm \
+          -v $GITHUB_WORKSPACE:/workspace \
+          -w /workspace \
+          archlinux:latest bash -c "
+            # Set up the environment inside the Arch container
+            pacman -Sy --noconfirm base-devel git gnupg \
+              bc cpio gettext libelf pahole perl python python-pip \
+              tar xz graphviz imagemagick python-sphinx python-yaml \
+              texlive-core texlive-latexextra curl && \
+            df -h
+            # Create a non-root user and switch to it
+            useradd -m builder && \
+            # Ensure the builder user has permission to write to /workspace
+            chown -R builder:builder /workspace && \
+            # Switch to the builder user and run the build process
+            su builder -c ' \
+              # Set MAKEFLAGS for parallel builds
+              export MAKEFLAGS=\"-j$(nproc)\" && \
+              # Download dependencies (e.g., PGP keys) and source code
+              git clone https://gitlab.archlinux.org/archlinux/packaging/packages/linux.git /workspace/linux && \
+              cd /workspace/linux && \
+              gpg --import /workspace/linux/keys/pgp/* && \
+              # Apply patch (if any)
+              if [ -f /workspace/PKGBUILD.patch ]; then \
+                git apply /workspace/PKGBUILD.patch; \
+              fi && \
+              # Build the kernel package
+              makepkg && \
+              # Save the resulting package to the mounted workspace
+              cp /workspace/linux/*.pkg.tar.zst /workspace/'"
+
+    - name: Upload the kernel package artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-kernel-package
+        path: linux/*.pkg.tar.zst

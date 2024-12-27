@@ -1,0 +1,23 @@
+From ef88b6ad8ab194d3b4d1abb84f88c1d160e7f1e3 Mon Sep 17 00:00:00 2001
+From: Piyush Raj Chouhan <piyushchouhan1598@gmail.com>
+Date: Sat, 28 Dec 2024 00:18:14 +0530
+Subject: [PATCH] frrrr
+
+---
+ PKGBUILD | 1 ++
+ 1 file changed, 1 insertions(+)
+
+diff --git a/PKGBUILD b/PKGBUILD
+index b9aa351..24003fe 100644
+--- a/PKGBUILD
++++ b/PKGBUILD
+@@ -72,6 +72,7 @@ prepare() {
+     [[ $src = *.patch ]] || continue
+     echo "Applying patch $src..."
+     patch -Np1 < "../$src"
++    patch -Np1 < "../../../v6-media-i2c-Add-Omnivision-OV02C10-sensor-driver.patch"
+   done
+ 
+   echo "Setting config..."
+-- 
+2.47.1
