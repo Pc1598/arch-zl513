@@ -1196,7 +1196,7 @@ index 000000000000..adc8eff51905
 +		return -ENXIO;
 +	}
 +
-+	dev_dbg(&client->dev, "chip id: 0x%x\n", val);
++	dev_dbg(&client->dev, "chip id: 0x%llx\n", chip_id);
 +
 +	return 0;
 +}
