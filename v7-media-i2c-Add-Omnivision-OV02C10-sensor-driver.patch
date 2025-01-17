@@ -6,22 +6,22 @@ Subject: [PATCH] patch for ov02c10
 ---
  drivers/media/i2c/Kconfig   |   11 +
  drivers/media/i2c/Makefile  |    1 +
- drivers/media/i2c/ov02c10.c | 1335 +++++++++++++++++++++++++++++++++++
- 3 files changed, 1347 insertions(+)
+ drivers/media/i2c/ov02c10.c | 1296 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 1308 insertions(+)
  create mode 100644 drivers/media/i2c/ov02c10.c
 
 diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 8ba096b8ebca..419c94455eb5 100644
+index 8ba096b8ebca..9bca187d89af 100644
 --- a/drivers/media/i2c/Kconfig
 +++ b/drivers/media/i2c/Kconfig
-@@ -355,6 +355,17 @@ config VIDEO_OV02A10
+@@ -355,6 +355,17 @@  config VIDEO_OV02A10
  	  To compile this driver as a module, choose M here: the
  	  module will be called ov02a10.
  
 +config VIDEO_OV02C10
 +	tristate "OmniVision OV02C10 sensor support"
 +	select V4L2_CCI_I2C
-+	default m
++       default m
 +	help
 +	  This is a Video4Linux2 sensor driver for the OmniVision
 +	  OV02C10 camera.
@@ -36,7 +36,7 @@ diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
 index fbb988bd067a..5842346c220d 100644
 --- a/drivers/media/i2c/Makefile
 +++ b/drivers/media/i2c/Makefile
-@@ -82,6 +82,7 @@ obj-$(CONFIG_VIDEO_MT9V111) += mt9v111.o
+@@ -82,6 +82,7 @@  obj-$(CONFIG_VIDEO_MT9V111) += mt9v111.o
  obj-$(CONFIG_VIDEO_OG01A1B) += og01a1b.o
  obj-$(CONFIG_VIDEO_OV01A10) += ov01a10.o
  obj-$(CONFIG_VIDEO_OV02A10) += ov02a10.o
@@ -46,10 +46,10 @@ index fbb988bd067a..5842346c220d 100644
  obj-$(CONFIG_VIDEO_OV13858) += ov13858.o
 diff --git a/drivers/media/i2c/ov02c10.c b/drivers/media/i2c/ov02c10.c
 new file mode 100644
-index 000000000000..adc8eff51905
+index 000000000000..291da9ee1788
 --- /dev/null
 +++ b/drivers/media/i2c/ov02c10.c
-@@ -0,0 +1,1335 @@
+@@ -0,0 +1,1296 @@ 
 +// SPDX-License-Identifier: GPL-2.0
 +// Copyright (c) 2022 Intel Corporation.
 +
@@ -751,17 +751,15 @@ index 000000000000..adc8eff51905
 +
 +static int ov02c10_init_controls(struct ov02c10 *ov02c10)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(&ov02c10->sd);
 +	struct v4l2_ctrl_handler *ctrl_hdlr;
 +	const struct ov02c10_mode *cur_mode;
 +	s64 exposure_max, h_blank;
 +	u32 vblank_min, vblank_max, vblank_default;
-+	struct v4l2_fwnode_device_properties props;
 +	int size;
 +	int ret = 0;
 +
 +	ctrl_hdlr = &ov02c10->ctrl_handler;
-+	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 10);
++	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
 +	if (ret)
 +		return ret;
 +
@@ -812,15 +810,6 @@ index 000000000000..adc8eff51905
 +				     V4L2_CID_TEST_PATTERN,
 +				     ARRAY_SIZE(ov02c10_test_pattern_menu) - 1,
 +				     0, 0, ov02c10_test_pattern_menu);
-+
-+	ret = v4l2_fwnode_device_parse(&client->dev, &props);
-+	if (ret) {
-+		v4l2_ctrl_handler_free(ctrl_hdlr);
-+		return ret;
-+	}
-+
-+	v4l2_ctrl_new_fwnode_properties(ctrl_hdlr, &ov02c10_ctrl_ops, &props);
-+
 +	if (ctrl_hdlr->error)
 +		return ctrl_hdlr->error;
 +
@@ -1116,14 +1105,12 @@ index 000000000000..adc8eff51905
 +	return 0;
 +}
 +
-+static int ov02c10_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++static int ov02c10_init_state(struct v4l2_subdev *sd,
++			      struct v4l2_subdev_state *sd_state)
 +{
-+	struct ov02c10 *ov02c10 = to_ov02c10(sd);
-+
-+	mutex_lock(&ov02c10->mutex);
 +	ov02c10_update_pad_format(&supported_modes[0],
-+				  v4l2_subdev_state_get_format(fh->state, 0));
-+	mutex_unlock(&ov02c10->mutex);
++				  v4l2_subdev_state_get_format(sd_state, 0));
++
 +	return 0;
 +}
 +
@@ -1148,36 +1135,8 @@ index 000000000000..adc8eff51905
 +};
 +
 +static const struct v4l2_subdev_internal_ops ov02c10_internal_ops = {
-+	.open = ov02c10_open,
++	.init_state = ov02c10_init_state,
 +};
-+
-+static int ov02c10_read_mipi_lanes(struct ov02c10 *ov02c10, struct device *dev)
-+{
-+	struct v4l2_fwnode_endpoint bus_cfg = {
-+		.bus_type = V4L2_MBUS_CSI2_DPHY
-+	};
-+	struct fwnode_handle *ep;
-+	struct fwnode_handle *fwnode = dev_fwnode(dev);
-+	int ret = 0;
-+
-+	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
-+	if (!ep)
-+		return -ENXIO;
-+
-+	ret = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
-+	fwnode_handle_put(ep);
-+	if (ret)
-+		return ret;
-+
-+	if (bus_cfg.bus.mipi_csi2.num_data_lanes != 2 &&
-+	    bus_cfg.bus.mipi_csi2.num_data_lanes != 4) {
-+		dev_err(dev, "number of CSI2 data lanes %d is not supported",
-+			bus_cfg.bus.mipi_csi2.num_data_lanes);
-+		return(-EINVAL);
-+	}
-+	ov02c10->mipi_lanes = bus_cfg.bus.mipi_csi2.num_data_lanes;
-+	return ret;
-+}
 +
 +static int ov02c10_identify_module(struct ov02c10 *ov02c10)
 +{
@@ -1196,12 +1155,10 @@ index 000000000000..adc8eff51905
 +		return -ENXIO;
 +	}
 +
-+	dev_dbg(&client->dev, "chip id: 0x%llx\n", chip_id);
-+
 +	return 0;
 +}
 +
-+static int ov02c10_check_hwcfg(struct device *dev)
++static int ov02c10_check_hwcfg(struct device *dev, struct ov02c10 *ov02c10)
 +{
 +	struct v4l2_fwnode_endpoint bus_cfg = {
 +		.bus_type = V4L2_MBUS_CSI2_DPHY
@@ -1252,6 +1209,14 @@ index 000000000000..adc8eff51905
 +		}
 +	}
 +
++	if (bus_cfg.bus.mipi_csi2.num_data_lanes != 2 &&
++	    bus_cfg.bus.mipi_csi2.num_data_lanes != 4) {
++		dev_err(dev, "number of CSI2 data lanes %d is not supported",
++			bus_cfg.bus.mipi_csi2.num_data_lanes);
++		return(-EINVAL);
++	}
++	ov02c10->mipi_lanes = bus_cfg.bus.mipi_csi2.num_data_lanes;
++
 +out_err:
 +	v4l2_fwnode_endpoint_free(&bus_cfg);
 +
@@ -1275,16 +1240,16 @@ index 000000000000..adc8eff51905
 +	struct ov02c10 *ov02c10;
 +	int ret = 0;
 +
++	ov02c10 = devm_kzalloc(&client->dev, sizeof(*ov02c10), GFP_KERNEL);
++	if (!ov02c10)
++		return -ENOMEM;
++
 +	/* Check HW config */
-+	ret = ov02c10_check_hwcfg(&client->dev);
++	ret = ov02c10_check_hwcfg(&client->dev, ov02c10);
 +	if (ret) {
 +		dev_err(&client->dev, "failed to check hwcfg: %d", ret);
 +		return ret;
 +	}
-+
-+	ov02c10 = devm_kzalloc(&client->dev, sizeof(*ov02c10), GFP_KERNEL);
-+	if (!ov02c10)
-+		return -ENOMEM;
 +
 +	v4l2_i2c_subdev_init(&ov02c10->sd, client, &ov02c10_subdev_ops);
 +	ov02c10_get_pm_resources(&client->dev);
@@ -1300,10 +1265,6 @@ index 000000000000..adc8eff51905
 +		dev_err(&client->dev, "failed to find sensor: %d", ret);
 +		goto probe_error_ret;
 +	}
-+
-+	ret = ov02c10_read_mipi_lanes(ov02c10, &client->dev);
-+	if (ret)
-+		goto probe_error_ret;
 +
 +	mutex_init(&ov02c10->mutex);
 +	ov02c10->cur_mode = &supported_modes[0];

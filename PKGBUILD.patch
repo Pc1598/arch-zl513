@@ -15,7 +15,7 @@ index b9aa351..24003fe 100644
      [[ $src = *.patch ]] || continue
      echo "Applying patch $src..."
      patch -Np1 < "../$src"
-+    patch -Np1 < "../../../v6-media-i2c-Add-Omnivision-OV02C10-sensor-driver.patch"
++    patch -Np1 < "../../../v7-media-i2c-Add-Omnivision-OV02C10-sensor-driver.patch"
    done
  
    echo "Setting config..."
