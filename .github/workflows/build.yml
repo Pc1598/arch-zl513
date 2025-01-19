@@ -53,13 +53,16 @@ jobs:
               tar xz graphviz imagemagick python-sphinx python-yaml \
               texlive-core texlive-latexextra curl && \
             df -h
+            # Replace makepkg.conf
+            curl -o /etc/makepkg.conf https://raw.githubusercontent.com/CachyOS/docker-makepkg/refs/heads/master/docker-makepkg-v3/makepkg.conf && \
             # Create a non-root user and switch to it
             useradd -m builder && \
             # Ensure the builder user has permission to write to /workspace
             chown -R builder:builder /workspace && \
             # Switch to the builder user and run the build process
             su builder -c ' \
-              # Set MAKEFLAGS for parallel builds
+              # Set PKGDEST to /workspace/linux and MAKEFLAGS for parallel builds
+              export PKGDEST=/workspace/linux && \
               export MAKEFLAGS=\"-j$(nproc)\" && \
               # Download dependencies (e.g., PGP keys) and source code
               git clone https://gitlab.archlinux.org/archlinux/packaging/packages/linux.git /workspace/linux && \
