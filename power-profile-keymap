@@ -1,0 +1,11 @@
+# Switch to Performance Profile
+"powerprofilesctl set performance"
+    super+ctrl+shift+J
+
+# Switch to Balanced Profile
+"powerprofilesctl set balanced"
+    super+ctrl+shift+H
+
+# Switch to Power-Saver Profile
+"powerprofilesctl set power-saver"
+    super+ctrl+shift+G
