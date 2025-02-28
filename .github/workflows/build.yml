@@ -51,7 +51,7 @@ jobs:
             pacman -Sy --noconfirm base-devel git gnupg \
               bc cpio gettext libelf pahole perl python python-pip \
               tar xz graphviz imagemagick python-sphinx python-yaml \
-              texlive-core texlive-latexextra curl && \
+              texlive-core texlive-latexextra rust rust-bindgen rust-src curl && \
             df -h
             # Replace makepkg.conf
             curl -o /etc/makepkg.conf https://raw.githubusercontent.com/CachyOS/docker-makepkg/refs/heads/master/docker-makepkg-v3/makepkg.conf && \
