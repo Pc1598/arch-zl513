@@ -3,7 +3,7 @@ name: Build Linux Kernel Package
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 5'  # Run every Friday at midnight
+    - cron: '0 0 * * 6'  # Run every Saturday at midnight
   push:
   pull_request:
 
