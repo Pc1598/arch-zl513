@@ -1,4 +1,4 @@
-From 79937897d0f83775595a66dfbf9da1730f838db6 Mon Sep 17 00:00:00 2001
+From 63b3ae216f1d299fa0347292c97203f4ffc11a1e Mon Sep 17 00:00:00 2001
 From: Piyush Raj Chouhan <103498040+Pc1598@users.noreply.github.com>
 Date: Sun, 13 Jul 2025 04:10:03 +0000
 Subject: [PATCH] Input: xpad - support Cosmic Byte Blitz Controller Add the
@@ -6,11 +6,11 @@ Subject: [PATCH] Input: xpad - support Cosmic Byte Blitz Controller Add the
 
 Signed-off-by: Piyush Raj Chouhan <piyushrajchouhan@gmail.com>
 ---
- drivers/input/joystick/xpad.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/input/joystick/xpad.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
-index 5d9b7007a73088..360d9e36d3c7dc 100644
+index 5d9b7007a73088..57a87c63c8b987 100644
 --- a/drivers/input/joystick/xpad.c
 +++ b/drivers/input/joystick/xpad.c
 @@ -358,6 +358,7 @@ static const struct xpad_device {
@@ -21,3 +21,11 @@ index 5d9b7007a73088..360d9e36d3c7dc 100644
  	{ 0x20d6, 0x2001, "BDA Xbox Series X Wired Controller", 0, XTYPE_XBOXONE },
  	{ 0x20d6, 0x2009, "PowerA Enhanced Wired Controller for Xbox Series X|S", 0, XTYPE_XBOXONE },
  	{ 0x20d6, 0x2064, "PowerA Wired Controller for Xbox", MAP_SHARE_BUTTON, XTYPE_XBOXONE },
+@@ -557,6 +558,7 @@ static const struct usb_device_id xpad_table[] = {
+ 	XPAD_XBOX360_VENDOR(0x1a86),		/* Nanjing Qinheng Microelectronics (WCH) */
+ 	XPAD_XBOX360_VENDOR(0x1bad),		/* Harmonix Rock Band guitar and drums */
+ 	XPAD_XBOX360_VENDOR(0x1ee9),		/* ZOTAC Technology Limited */
++	XPAD_XBOX360_VENDOR(0x20bc),		/* Cosmic Byte controllers */
+ 	XPAD_XBOX360_VENDOR(0x20d6),		/* PowerA controllers */
+ 	XPAD_XBOXONE_VENDOR(0x20d6),		/* PowerA controllers */
+ 	XPAD_XBOX360_VENDOR(0x2345),		/* Machenike Controllers */
