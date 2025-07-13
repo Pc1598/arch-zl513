@@ -1,0 +1,23 @@
+From 79937897d0f83775595a66dfbf9da1730f838db6 Mon Sep 17 00:00:00 2001
+From: Piyush Raj Chouhan <103498040+Pc1598@users.noreply.github.com>
+Date: Sun, 13 Jul 2025 04:10:03 +0000
+Subject: [PATCH] Input: xpad - support Cosmic Byte Blitz Controller Add the
+ Cosmic Byte Blitz Controller Xbox 360 to the list of recognized controllers.
+
+Signed-off-by: Piyush Raj Chouhan <piyushrajchouhan@gmail.com>
+---
+ drivers/input/joystick/xpad.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
+index 5d9b7007a73088..360d9e36d3c7dc 100644
+--- a/drivers/input/joystick/xpad.c
++++ b/drivers/input/joystick/xpad.c
+@@ -358,6 +358,7 @@ static const struct xpad_device {
+ 	{ 0x1bad, 0xfd00, "Razer Onza TE", 0, XTYPE_XBOX360 },
+ 	{ 0x1bad, 0xfd01, "Razer Onza", 0, XTYPE_XBOX360 },
+ 	{ 0x1ee9, 0x1590, "ZOTAC Gaming Zone", 0, XTYPE_XBOX360 },
++	{ 0x20bc, 0x5001, "Cosmic Byte Blitz Controller", 0, XTYPE_XBOX360 },
+ 	{ 0x20d6, 0x2001, "BDA Xbox Series X Wired Controller", 0, XTYPE_XBOXONE },
+ 	{ 0x20d6, 0x2009, "PowerA Enhanced Wired Controller for Xbox Series X|S", 0, XTYPE_XBOXONE },
+ 	{ 0x20d6, 0x2064, "PowerA Wired Controller for Xbox", MAP_SHARE_BUTTON, XTYPE_XBOXONE },
