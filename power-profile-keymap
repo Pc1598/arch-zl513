@@ -1,11 +1,14 @@
 # Switch to Performance Profile
 "powerprofilesctl set performance"
+"tuned-adm profile throughput-performance"
     super+ctrl+shift+J
 
 # Switch to Balanced Profile
 "powerprofilesctl set balanced"
+"tuned-adm profile balanced-battery"
     super+ctrl+shift+H
 
 # Switch to Power-Saver Profile
 "powerprofilesctl set power-saver"
+"tuned-adm profile powersave"
     super+ctrl+shift+G
