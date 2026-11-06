@@ -1,0 +1,8 @@
+# Ignore built package binaries
+*.pkg.tar.zst
+*.pkg.tar.xz
+*.pkg.tar.gz
+
+# Ignore editor and backup files
+*.bak
+*~
